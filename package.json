@@ -1,0 +1,24 @@
+{
+  "name": "newsletter-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "RUN_ON_STARTUP=true tsx src/index.ts",
+    "test": "tsx src/test-extraction.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.2",
+    "dotenv": "^17.4.2",
+    "googleapis": "^174.0.1",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.4",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.23.11",
+    "typescript": "^5.9.3"
+  }
+}
