@@ -30,12 +30,11 @@ Write run summary → `run_logs`
 ## Status
 
 - [x] Project scaffolded, core modules written (Gmail, extraction, embeddings, Supabase, orchestration)
-- [ ] **Supabase schema migration not yet applied.** [`migrations/001_align_pipeline_schema.sql`](migrations/001_align_pipeline_schema.sql)
-      must be run manually in the Supabase SQL Editor (back up the project first) before the
-      pipeline can succeed end-to-end — it adds `gmail_message_id`, renames `sender`/`full_text`,
-      changes `embedding` to `vector(1024)`, and creates `run_logs`. `insights.published_date` is
-      kept (not dropped) — the pipeline populates it from `newsletters.received_at` at insert time.
-- [ ] `.env` not yet populated with real credentials
+- [x] Supabase schema migration applied ([`migrations/001_align_pipeline_schema.sql`](migrations/001_align_pipeline_schema.sql)) —
+      `newsletters` has `gmail_message_id`/`from`/`body`, `run_logs` exists, indexes created.
+      Preceded by a full `pg_dump` backup. `embedding` and the `text[]` array columns were
+      verified already correct in production and left untouched (no data loss).
+- [x] `.env` populated with real credentials (OpenRouter, Voyage, Supabase, Gmail OAuth)
 - [ ] No live test run against Gmail/Supabase yet
 
 ## Setup
