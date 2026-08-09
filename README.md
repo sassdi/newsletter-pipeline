@@ -35,7 +35,13 @@ Write run summary → `run_logs`
       Preceded by a full `pg_dump` backup. `embedding` and the `text[]` array columns were
       verified already correct in production and left untouched (no data loss).
 - [x] `.env` populated with real credentials (OpenRouter, Voyage, Supabase, Gmail OAuth)
-- [ ] No live test run against Gmail/Supabase yet
+- [x] Live test runs against real Gmail/Supabase completed successfully — multiple consecutive
+      `npm run dev` runs processed real backlog mail end-to-end (extraction, embedding, insert,
+      mark-as-read) with no errors and no duplicate reprocessing. Found and fixed along the way:
+      orphaned-newsletter recovery (a newsletter row could exist with no insights if a prior run
+      failed mid-processing — it's now resumed instead of skipped forever), missing network
+      timeouts (a stalled request could hang the whole run indefinitely), and `npm run dev` not
+      working on Windows (`cross-env`).
 
 ## Setup
 
