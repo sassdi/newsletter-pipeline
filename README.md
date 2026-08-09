@@ -33,7 +33,8 @@ Write run summary → `run_logs`
 - [ ] **Supabase schema migration not yet applied.** [`migrations/001_align_pipeline_schema.sql`](migrations/001_align_pipeline_schema.sql)
       must be run manually in the Supabase SQL Editor (back up the project first) before the
       pipeline can succeed end-to-end — it adds `gmail_message_id`, renames `sender`/`full_text`,
-      changes `embedding` to `vector(1024)`, and creates `run_logs`.
+      changes `embedding` to `vector(1024)`, and creates `run_logs`. `insights.published_date` is
+      kept (not dropped) — the pipeline populates it from `newsletters.received_at` at insert time.
 - [ ] `.env` not yet populated with real credentials
 - [ ] No live test run against Gmail/Supabase yet
 

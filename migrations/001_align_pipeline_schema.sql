@@ -30,8 +30,10 @@ DROP COLUMN embedding;
 ALTER TABLE public.insights
 ADD COLUMN embedding vector(1024);
 
-ALTER TABLE public.insights
-DROP COLUMN published_date;
+-- published_date is KEPT -- has existing production data. The pipeline
+-- populates it as the date portion of newsletters.received_at at insert
+-- time (matches prior Make.com logic exactly; see Section 4/9 of
+-- docs/MIGRATION_PLAN.md). No column change needed here.
 
 -- NOTE: if companies/people/products/audience_fit already contain data in an
 -- incompatible array format, this USING cast may need adjustment. Inspect

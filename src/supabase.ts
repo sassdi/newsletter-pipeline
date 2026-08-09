@@ -33,7 +33,8 @@ export async function insertNewsletter(row: NewsletterRow): Promise<InsertNewsle
 export async function insertInsights(
   newsletterId: string,
   insights: ExtractedInsight[],
-  embeddings: number[][]
+  embeddings: number[][],
+  publishedDate: string
 ): Promise<void> {
   if (insights.length === 0) return;
 
@@ -41,6 +42,7 @@ export async function insertInsights(
     ...insight,
     newsletter_id: newsletterId,
     embedding: embeddings[i]!,
+    published_date: publishedDate,
   }));
 
   const { error } = await getClient().from("insights").insert(rows);

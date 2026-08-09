@@ -16,6 +16,11 @@ function classifySource(from: string): { source_name: string; source_category: s
 
 async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | "error"> {
   const { source_name, source_category } = classifySource(email.from);
+  // Gmail's internalDate is the actual send/receive time, which is what we
+  // want here -- not "now", since backlog emails can be days/weeks old and
+  // published_date must reflect when the newsletter was received.
+  const receivedAt = new Date(email.internalDate).toISOString();
+  const publishedDate = receivedAt.slice(0, 10);
 
   const { id: newsletterId, isDuplicate } = await insertNewsletter({
     gmail_message_id: email.id,
@@ -24,6 +29,7 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
     subject: email.subject,
     source_name,
     source_category,
+    received_at: receivedAt,
   });
 
   if (isDuplicate) {
@@ -43,7 +49,7 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
   }
 
   const embeddings = await embedInsights(insights);
-  await insertInsights(newsletterId!, insights, embeddings);
+  await insertInsights(newsletterId!, insights, embeddings, publishedDate);
   await markAsRead(email.id);
   return "processed";
 }

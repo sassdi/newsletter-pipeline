@@ -50,11 +50,15 @@ export interface NewsletterRow {
   subject: string;
   source_name: string;
   source_category: string;
+  received_at: string;
 }
 
 export interface InsightRow extends ExtractedInsight {
   newsletter_id: string;
   embedding: number[];
+  // Date portion of the parent newsletter's received_at, matching the prior
+  // Make.com behavior (see docs/MIGRATION_PLAN.md Section 4/9).
+  published_date: string;
 }
 
 export type RunStatus = "success" | "partial" | "failed";
