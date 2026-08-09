@@ -1,7 +1,7 @@
 import { embedInsights } from "./embeddings.js";
 import { extractInsights } from "./extraction.js";
 import { fetchUnreadNewsletters, markAsRead } from "./gmail.js";
-import { insertInsights, insertNewsletter, insertRunLog } from "./supabase.js";
+import { countInsightsForNewsletter, insertInsights, insertNewsletter, insertRunLog } from "./supabase.js";
 import type { PipelineResult, RawEmail, RunStatus } from "./types.js";
 
 function classifySource(from: string): { source_name: string; source_category: string } {
@@ -35,11 +35,20 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
   });
 
   if (isDuplicate) {
-    console.log(`  -> duplicate, skipping ${label}`);
-    // Do not mark as read -- a duplicate insert means something's off
-    // (e.g. is:unread didn't exclude it), worth investigating rather than
-    // silently clearing the unread flag.
-    return "skipped";
+    // A newsletter row already existing doesn't mean this email is fully
+    // processed -- a prior run could have inserted it and then failed
+    // before writing insights (e.g. a network timeout mid-extraction).
+    // Check whether insights actually exist before deciding what to do.
+    const existingInsightCount = await countInsightsForNewsletter(newsletterId);
+    if (existingInsightCount > 0) {
+      // Genuinely already done -- just make sure it's marked read in case
+      // that step is what failed last time, and don't re-extract (that
+      // would create duplicate insight rows).
+      console.log(`  -> already fully processed, ensuring read: ${label}`);
+      await markAsRead(email.id);
+      return "skipped";
+    }
+    console.log(`  -> newsletter row exists but has no insights yet, resuming ${label}`);
   }
 
   console.log(`  -> extracting insights for ${label}`);
@@ -56,7 +65,7 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
   console.log(`  -> embedding ${insights.length} insight(s) for ${label}`);
   const embeddings = await embedInsights(insights);
   console.log(`  -> inserting insights for ${label}`);
-  await insertInsights(newsletterId!, insights, embeddings, publishedDate);
+  await insertInsights(newsletterId, insights, embeddings, publishedDate);
   await markAsRead(email.id);
   console.log(`  -> done: ${label}`);
   return "processed";

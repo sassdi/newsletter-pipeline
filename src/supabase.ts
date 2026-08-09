@@ -11,7 +11,7 @@ function getClient() {
 const UNIQUE_VIOLATION = "23505";
 
 interface InsertNewsletterResult {
-  id: string | null;
+  id: string;
   isDuplicate: boolean;
 }
 
@@ -22,12 +22,31 @@ export async function insertNewsletter(row: NewsletterRow): Promise<InsertNewsle
 
   if (error) {
     if (error.code === UNIQUE_VIOLATION) {
-      return { id: null, isDuplicate: true };
+      // A newsletter row already exists for this gmail_message_id -- but
+      // that doesn't mean processing finished: a prior run could have
+      // inserted the newsletter and then failed/timed out before writing
+      // insights. Return the existing id so the caller can check.
+      const { data: existing, error: lookupError } = await supabase
+        .from("newsletters")
+        .select("id")
+        .eq("gmail_message_id", row.gmail_message_id)
+        .single();
+      if (lookupError) throw lookupError;
+      return { id: existing.id as string, isDuplicate: true };
     }
     throw error;
   }
 
   return { id: data.id as string, isDuplicate: false };
+}
+
+export async function countInsightsForNewsletter(newsletterId: string): Promise<number> {
+  const { count, error } = await getClient()
+    .from("insights")
+    .select("*", { count: "exact", head: true })
+    .eq("newsletter_id", newsletterId);
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function insertInsights(
