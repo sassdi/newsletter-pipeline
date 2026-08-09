@@ -4,8 +4,9 @@
 -- (xwxlgfejfctgpnyfmizm). This file is checked in for review only.
 -- Back up the project (Project Settings -> Backups) before running this,
 -- then run it manually in the Supabase SQL Editor. See docs/MIGRATION_PLAN.md
--- Section 8 for full context, and the note below about inspecting existing
--- array-column data before the type casts.
+-- Section 8 for full context. embedding and the companies/people/products/
+-- audience_fit columns were verified already correct (vector(1024) and
+-- text[] respectively) and are left untouched -- see inline notes below.
 
 -- ============================================================================
 -- TABLE: newsletters
@@ -35,14 +36,8 @@ RENAME COLUMN full_text TO body;
 -- time (matches prior Make.com logic exactly; see Section 4/9 of
 -- docs/MIGRATION_PLAN.md). No column change needed here.
 
--- NOTE: if companies/people/products/audience_fit already contain data in an
--- incompatible array format, this USING cast may need adjustment. Inspect
--- existing row data first with: SELECT companies FROM insights LIMIT 5;
-ALTER TABLE public.insights
-ALTER COLUMN companies TYPE text[] USING companies::text[],
-ALTER COLUMN people TYPE text[] USING people::text[],
-ALTER COLUMN products TYPE text[] USING products::text[],
-ALTER COLUMN audience_fit TYPE text[] USING audience_fit::text[];
+-- companies/people/products/audience_fit are ALREADY text[] in production
+-- (confirmed via pg_typeof on each column) -- no change needed.
 
 -- ============================================================================
 -- INDEXES
