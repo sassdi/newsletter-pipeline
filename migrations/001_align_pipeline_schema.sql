@@ -24,11 +24,11 @@ RENAME COLUMN full_text TO body;
 -- TABLE: insights
 -- ============================================================================
 
-ALTER TABLE public.insights
-DROP COLUMN embedding;
-
-ALTER TABLE public.insights
-ADD COLUMN embedding vector(1024);
+-- embedding is ALREADY vector(1024) in production (confirmed via
+-- `SELECT vector_dims(embedding) FROM insights LIMIT 1;`), matching
+-- voyage-4-lite's output dimension. No change needed -- the original plan's
+-- DROP+ADD here would have destroyed every existing insight's embedding
+-- for no reason.
 
 -- published_date is KEPT -- has existing production data. The pipeline
 -- populates it as the date portion of newsletters.received_at at insert
