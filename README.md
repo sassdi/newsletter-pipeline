@@ -13,7 +13,7 @@ Full design spec: [`docs/MIGRATION_PLAN.md`](docs/MIGRATION_PLAN.md).
 node-cron (daily 08:00 UTC)
         │
         ▼
-Gmail API — oldest 5 unread from The Batch + Mindstream
+Gmail API — oldest 5 unread tagged with the "ai-news" label
         │
         ▼
 For each email:
@@ -65,11 +65,13 @@ npm run typecheck
 - `extraction.ts` and `embeddings.ts` call OpenRouter and Voyage AI directly via `fetch`
   rather than through an SDK — OpenRouter's API is OpenAI-chat-completions-compatible (not
   Anthropic-messages-compatible), and the `voyageai` npm package is a pre-1.0 alpha.
+- Gmail selection filters by the `ai-news` label (`label:ai-news is:unread`) instead of a
+  hardcoded sender list (per-request change) — tag whichever newsletters you want ingested.
 
 ## Sources
 
-Two newsletters: **The Batch** (deeplearning.ai) and **Mindstream**. Storage is Supabase
-project `xwxlgfejfctgpnyfmizm`, shared with the UC2 Next.js web app
-(`github.com/sassdi/newsletter-intelligence`).
+Fetches any unread mail tagged with the Gmail label `ai-news` (apply this label to whichever
+newsletters you want ingested — no hardcoded sender list). Storage is Supabase project
+`xwxlgfejfctgpnyfmizm`, shared with the UC2 Next.js web app (`github.com/sassdi/newsletter-intelligence`).
 
 Owner: Dirk.

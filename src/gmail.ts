@@ -2,7 +2,11 @@ import { google } from "googleapis";
 import type { gmail_v1 } from "googleapis";
 import type { RawEmail } from "./types.js";
 
-const QUERY = "from:(deeplearning.ai@mail.deeplearning.ai OR hello@mindstream.io) is:unread";
+// Filters by Gmail label rather than sender address -- sender addresses
+// drift over time (newsletter platforms change their sending domain), a
+// label is stable and lets the user route any AI newsletter into scope
+// just by tagging it.
+const QUERY = "label:ai-news is:unread";
 const MAX_PER_RUN = 5;
 // Cap on how many unread candidates we scan (metadata-only) to find the
 // oldest MAX_PER_RUN. Gmail's list() is always newest-first for a given
