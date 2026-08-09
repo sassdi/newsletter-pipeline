@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "cross-env RUN_ON_STARTUP=true tsx src/index.ts",
+    "pipeline:once": "tsx src/run-once.ts",
     "test": "tsx src/test-extraction.ts",
     "typecheck": "tsc --noEmit",
     "gmail:auth": "tsx scripts/gmail-auth.ts"
