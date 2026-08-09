@@ -82,9 +82,10 @@ export async function extractInsights(subject: string, body: string): Promise<Ex
       ],
     }),
     // Without this, a stalled connection hangs the whole pipeline run forever.
-    // 120s (not 60s) because dense, multi-topic newsletters generating close
-    // to max_tokens can legitimately take a while.
-    signal: AbortSignal.timeout(120_000),
+    // 240s based on prior Make.com experience with this same extraction
+    // call -- dense, multi-topic newsletters generating close to max_tokens
+    // can legitimately take a while.
+    signal: AbortSignal.timeout(240_000),
   });
 
   if (!response.ok) {
