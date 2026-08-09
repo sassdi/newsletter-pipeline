@@ -82,7 +82,9 @@ export async function extractInsights(subject: string, body: string): Promise<Ex
       ],
     }),
     // Without this, a stalled connection hangs the whole pipeline run forever.
-    signal: AbortSignal.timeout(60_000),
+    // 120s (not 60s) because dense, multi-topic newsletters generating close
+    // to max_tokens can legitimately take a while.
+    signal: AbortSignal.timeout(120_000),
   });
 
   if (!response.ok) {
