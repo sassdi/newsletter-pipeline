@@ -26,7 +26,7 @@ function getAuthClient() {
 }
 
 function getGmailClient(): gmail_v1.Gmail {
-  return google.gmail({ version: "v1", auth: getAuthClient() });
+  return google.gmail({ version: "v1", auth: getAuthClient(), timeout: 30_000 });
 }
 
 function decodeBase64Url(data: string): string {

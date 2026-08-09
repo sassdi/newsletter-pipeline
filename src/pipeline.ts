@@ -15,6 +15,7 @@ function classifySource(from: string): { source_name: string; source_category: s
 }
 
 async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | "error"> {
+  const label = `"${email.subject}" (${email.id})`;
   const { source_name, source_category } = classifySource(email.from);
   // Gmail's internalDate is the actual send/receive time, which is what we
   // want here -- not "now", since backlog emails can be days/weeks old and
@@ -22,6 +23,7 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
   const receivedAt = new Date(email.internalDate).toISOString();
   const publishedDate = receivedAt.slice(0, 10);
 
+  console.log(`  -> inserting newsletter row for ${label}`);
   const { id: newsletterId, isDuplicate } = await insertNewsletter({
     gmail_message_id: email.id,
     from: email.from,
@@ -33,13 +35,16 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
   });
 
   if (isDuplicate) {
+    console.log(`  -> duplicate, skipping ${label}`);
     // Do not mark as read -- a duplicate insert means something's off
     // (e.g. is:unread didn't exclude it), worth investigating rather than
     // silently clearing the unread flag.
     return "skipped";
   }
 
+  console.log(`  -> extracting insights for ${label}`);
   const insights = await extractInsights(email.subject, email.body);
+  console.log(`  -> extracted ${insights.length} insight(s) for ${label}`);
 
   if (insights.length === 0) {
     // Empty/promo-only newsletter was correctly processed, just had
@@ -48,9 +53,12 @@ async function processEmail(email: RawEmail): Promise<"processed" | "skipped" | 
     return "skipped";
   }
 
+  console.log(`  -> embedding ${insights.length} insight(s) for ${label}`);
   const embeddings = await embedInsights(insights);
+  console.log(`  -> inserting insights for ${label}`);
   await insertInsights(newsletterId!, insights, embeddings, publishedDate);
   await markAsRead(email.id);
+  console.log(`  -> done: ${label}`);
   return "processed";
 }
 
@@ -60,7 +68,9 @@ export async function runPipeline(): Promise<PipelineResult> {
   let skipped = 0;
   let errors = 0;
 
+  console.log("Fetching unread candidates from Gmail...");
   const emails = await fetchUnreadNewsletters();
+  console.log(`Fetched ${emails.length} email(s) to process.`);
 
   for (const email of emails) {
     try {

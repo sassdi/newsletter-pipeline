@@ -30,6 +30,8 @@ export async function embedInsights(insights: ExtractedInsight[]): Promise<numbe
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ model: MODEL, input }),
+    // Without this, a stalled connection hangs the whole pipeline run forever.
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!response.ok) {

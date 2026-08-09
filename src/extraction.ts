@@ -81,6 +81,8 @@ export async function extractInsights(subject: string, body: string): Promise<Ex
         { role: "user", content: `Subject: ${subject}\n\n${body}` },
       ],
     }),
+    // Without this, a stalled connection hangs the whole pipeline run forever.
+    signal: AbortSignal.timeout(60_000),
   });
 
   if (!response.ok) {
