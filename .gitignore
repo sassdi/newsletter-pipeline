@@ -222,3 +222,7 @@ node_modules/
 npm-debug.log*
 *.tsbuildinfo
 dist/
+
+# Database backups/dumps -- may contain full production data
+*.sql
+!migrations/*.sql
