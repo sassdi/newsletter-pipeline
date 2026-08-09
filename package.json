@@ -7,7 +7,8 @@
     "start": "tsx src/index.ts",
     "dev": "RUN_ON_STARTUP=true tsx src/index.ts",
     "test": "tsx src/test-extraction.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gmail:auth": "tsx scripts/gmail-auth.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2",
