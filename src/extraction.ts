@@ -60,7 +60,7 @@ RULES:
   no code fences, no preamble or explanation text`;
 
 interface OpenRouterResponse {
-  choices?: Array<{ message?: { content?: string } }>;
+  choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
 }
 
 export async function extractInsights(subject: string, body: string): Promise<ExtractedInsight[]> {
@@ -75,7 +75,12 @@ export async function extractInsights(subject: string, body: string): Promise<Ex
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 4096,
+      // The model is a reasoning model: its hidden reasoning tokens count
+      // against max_tokens. With a 4096 cap it often spent the entire budget
+      // on reasoning and returned empty content (finish_reason "length").
+      // Keep reasoning effort low and leave plenty of room for the answer.
+      max_tokens: 16_000,
+      reasoning: { effort: "low" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: `Subject: ${subject}\n\n${body}` },
@@ -93,7 +98,18 @@ export async function extractInsights(subject: string, body: string): Promise<Ex
   }
 
   const data = (await response.json()) as OpenRouterResponse;
-  const content = data.choices?.[0]?.message?.content ?? "";
+  const choice = data.choices?.[0];
+  const content = choice?.message?.content ?? "";
+
+  // A truncated or empty reply is a failure, not "nothing to extract".
+  // Throwing leaves the email unread so the next run retries it, and the run
+  // shows up as an error in run_logs instead of a silent skip.
+  if (choice?.finish_reason === "length") {
+    throw new Error(`Extraction truncated (finish_reason=length, content length ${content.length})`);
+  }
+  if (content.trim() === "") {
+    throw new Error(`Extraction returned empty content (finish_reason=${choice?.finish_reason ?? "unknown"})`);
+  }
 
   const parsed = extractJsonArray<unknown>(content);
   return sanitizeExtraction(parsed, validateInsight);
