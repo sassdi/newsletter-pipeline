@@ -8,8 +8,9 @@ function classifySource(from: string): { source_name: string; source_category: s
   if (from.includes("deeplearning.ai")) {
     return { source_name: "The Batch", source_category: "deeplearning.ai" };
   }
-  if (from.includes("mindstream.io")) {
-    return { source_name: "Mindstream", source_category: "mindstream.io" };
+  // Mindstream actually sends from mindstream.news; keep .io in case it changes back.
+  if (from.includes("mindstream.news") || from.includes("mindstream.io")) {
+    return { source_name: "Mindstream", source_category: "mindstream.news" };
   }
   return { source_name: "Unknown", source_category: "unknown" };
 }
